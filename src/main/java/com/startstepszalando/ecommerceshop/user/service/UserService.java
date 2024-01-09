@@ -17,11 +17,13 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
 
     public void registerUser(UserDto userDto) {
-        User user = new User();
-        User.builder().name(userDto.getName());
-        User.builder().email(userDto.getEmail());
-        User.builder().password(passwordEncoder.encode(userDto.getPassword()));
-        User.builder().roles(userDto.getRoles());
+        User user = User.builder()
+                .name(userDto.getName())
+                .email(userDto.getEmail())
+                .password(passwordEncoder.encode(userDto.getPassword()))
+                .roles(userDto.getRoles())
+                .build();
+
         userRepository.save(user);
     }
 }
