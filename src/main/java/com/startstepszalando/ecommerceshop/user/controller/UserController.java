@@ -1,6 +1,6 @@
 package com.startstepszalando.ecommerceshop.user.controller;
 
-import com.startstepszalando.ecommerceshop.user.dto.UserRegistrationDto;
+import com.startstepszalando.ecommerceshop.user.dto.UserDto;
 import com.startstepszalando.ecommerceshop.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -14,8 +14,8 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<String> registerUser(@RequestBody UserRegistrationDto registrationDto) {
-        userService.registerUser(registrationDto);
+    public ResponseEntity<String> registerUser(@RequestBody UserDto userDto) {
+        userService.registerUser(userDto);
         return ResponseEntity.ok("User registered successfully.");
     }
 }
