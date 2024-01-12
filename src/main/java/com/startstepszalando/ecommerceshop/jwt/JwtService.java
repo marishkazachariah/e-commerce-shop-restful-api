@@ -1,4 +1,4 @@
-package com.startstepszalando.ecommerceshop.config;
+package com.startstepszalando.ecommerceshop.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
