@@ -1,10 +1,10 @@
 package com.startstepszalando.ecommerceshop.user.controller;
 
 import com.startstepszalando.ecommerceshop.auth.AuthenticationResponse;
+import com.startstepszalando.ecommerceshop.exception.DuplicateUserException;
 import com.startstepszalando.ecommerceshop.user.dto.UserRegistrationRequest;
 import com.startstepszalando.ecommerceshop.user.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,7 +18,7 @@ public class UserController {
     @PostMapping("/register")
     public ResponseEntity<AuthenticationResponse> registerUser(
             @RequestBody UserRegistrationRequest request
-    ) {
+    ) throws DuplicateUserException {
         return ResponseEntity.ok(userService.registerUser(request));
     }
 }
