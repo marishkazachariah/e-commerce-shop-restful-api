@@ -1,21 +1,24 @@
 package com.startstepszalando.ecommerceshop.user.controller;
 
-import com.startstepszalando.ecommerceshop.user.dto.UserDto;
+import com.startstepszalando.ecommerceshop.auth.AuthenticationResponse;
+import com.startstepszalando.ecommerceshop.user.dto.UserRegistrationRequest;
 import com.startstepszalando.ecommerceshop.user.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")
+@RequiredArgsConstructor
 public class UserController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<String> registerUser(@RequestBody UserDto userDto) {
-        userService.registerUser(userDto);
-        return ResponseEntity.ok("User registered successfully.");
+    public ResponseEntity<AuthenticationResponse> registerUser(
+            @RequestBody UserRegistrationRequest request
+    ) {
+        return ResponseEntity.ok(userService.registerUser(request));
     }
 }
