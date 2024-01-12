@@ -1,9 +1,6 @@
 package com.startstepszalando.ecommerceshop.user.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -25,15 +22,8 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Name cannot be blank")
     private String name;
-
-    @NotBlank(message = "Email cannot be blank")
-    @Email(message = "Please provide a valid email address")
     private String email;
-
-    @NotBlank(message = "Password cannot be blank")
-    @Size(min = 8, message = "Password must be at least 8 characters long")
     private String password;
 
     @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
