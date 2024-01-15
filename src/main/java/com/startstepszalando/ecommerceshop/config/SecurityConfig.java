@@ -1,5 +1,6 @@
 package com.startstepszalando.ecommerceshop.config;
 
+import com.startstepszalando.ecommerceshop.jwt.JwtAuthenticationFilter;
 import com.startstepszalando.ecommerceshop.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
