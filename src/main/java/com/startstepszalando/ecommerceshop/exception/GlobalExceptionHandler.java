@@ -1,7 +1,9 @@
 package com.startstepszalando.ecommerceshop.exception;
 
+import com.startstepszalando.ecommerceshop.auth.AuthenticationResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -60,6 +62,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleTokenValidationException(TokenValidationException ex) {
         logger.error(ex.toString());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<AuthenticationResponse> handleAuthenticationException(AuthenticationException e) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(new AuthenticationResponse(null, "Invalid username and/or password."));
     }
 
     @ExceptionHandler(Exception.class)

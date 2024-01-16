@@ -11,12 +11,13 @@ import com.startstepszalando.ecommerceshop.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Optional;
 
 @Service
@@ -29,9 +30,8 @@ public class UserService implements UserDetailsService {
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     public User getUserByEmail(String email) throws UserNotFoundException {
-        Optional<User> optionalUser = userRepository.findByEmail(email);
-        if (optionalUser.isPresent()) return optionalUser.get();
-        else throw new UserNotFoundException("The provided email does not match any registered user.");
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
     }
 
     public boolean isEmailRegistered(String email)  {
@@ -59,7 +59,7 @@ public class UserService implements UserDetailsService {
             var jwtToken = jwtService.generateToken(user);
 
             return AuthenticationResponse.builder()
-                    .token(jwtToken)
+                    .jwt(jwtToken)
                     .build();
 
         } catch (DuplicateUserException e) {
@@ -74,15 +74,20 @@ public class UserService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UserNotFoundException {
         try {
-            User user = userRepository.findByEmail(username)
-                    .orElseThrow(() -> new UserNotFoundException("User not found with email: " + username));
+            User user = getUserByEmail(username);
 
-            logger.info("User found with email: {}", username);
+            logger.info("User logged in with email: {}", username);
+
+            Collection<? extends GrantedAuthority> authorities = user.getAuthorities();
+
             return new org.springframework.security.core.userdetails.User(
-                    user.getEmail(), user.getPassword(), new ArrayList<>());
+                    user.getEmail(),
+                    user.getPassword(),
+                    authorities);
         } catch (UserNotFoundException e) {
             logger.error("User not found: {}", username);
             throw e;
         }
     }
+
 }
