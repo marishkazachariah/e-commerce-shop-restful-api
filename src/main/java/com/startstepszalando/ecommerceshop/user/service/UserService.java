@@ -52,7 +52,7 @@ public class UserService implements UserDetailsService {
                     .name(request.getName())
                     .email(request.getEmail())
                     .password(passwordEncoder.encode(request.getPassword()))
-                    .roles(request.getRoles())
+                    .role(request.getRole())
                     .build();
             userRepository.save(user);
             logger.info("Registration successful with email: {}", request.getEmail());
