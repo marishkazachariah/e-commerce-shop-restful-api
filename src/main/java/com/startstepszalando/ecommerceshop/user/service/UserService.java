@@ -59,7 +59,7 @@ public class UserService implements UserDetailsService {
             var jwtToken = jwtService.generateToken(user);
 
             return AuthenticationResponse.builder()
-                    .jwt(jwtToken)
+                    .jwtToken(jwtToken)
                     .build();
 
         } catch (DuplicateUserException e) {
