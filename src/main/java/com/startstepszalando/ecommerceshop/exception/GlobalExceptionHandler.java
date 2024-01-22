@@ -1,6 +1,5 @@
 package com.startstepszalando.ecommerceshop.exception;
 
-import com.startstepszalando.ecommerceshop.auth.AuthenticationResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
@@ -24,26 +23,30 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(DuplicateUserException.class)
-    public ResponseEntity<?> handleDuplicateUserException(DuplicateUserException ex) {
+    public ResponseEntity<String> handleDuplicateUser(DuplicateUserException ex) {
         String responseMessage = ex.getMessage() != null ? ex.getMessage() : "A user with this email already exists";
-        return new ResponseEntity<>(responseMessage, HttpStatus.CONFLICT);
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(responseMessage);
     }
+
 
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<?> handleInvalidCredentialsException(InvalidCredentialsException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNAUTHORIZED);
     }
 
-    @ExceptionHandler(PasswordPolicyException.class)
-    public ResponseEntity<?> handlePasswordPolicyException(PasswordPolicyException ex) {
-        logger.error(ex.toString());
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(RegistrationException.class)
-    public ResponseEntity<?> handleRegistrationException(RegistrationException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+//    @ExceptionHandler(PasswordPolicyException.class)
+//    public ResponseEntity<?> handlePasswordPolicyException(PasswordPolicyException ex) {
+//        logger.error(ex.toString());
+//        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+//    }
+//
+//    @ExceptionHandler(InvalidUserDetailsException.class)
+//    public ResponseEntity<?> handleRegistrationException(InvalidUserDetailsException ex) {
+//        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+//    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> handleValidationExceptions(MethodArgumentNotValidException ex) {
@@ -65,15 +68,17 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<AuthenticationResponse> handleAuthenticationException(AuthenticationException e) {
+    public ResponseEntity<String> handleAuthenticationException(AuthenticationException e) {
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
-                .body(new AuthenticationResponse(null, "Invalid username and/or password."));
+                .body("Invalid username and/or password");
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<?> handleException(Exception ex) {
-        logger.error(ex.toString());
-        return new ResponseEntity<>("An error occurred: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    public ResponseEntity<String> handleGeneralException(Exception ex) {
+        logger.error("Unexpected error occurred", ex);
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("An internal error occurred: " + ex.getMessage());
     }
 }
