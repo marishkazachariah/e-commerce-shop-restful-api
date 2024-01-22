@@ -1,5 +1,6 @@
 package com.startstepszalando.ecommerceshop.user.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -24,10 +25,12 @@ public class User implements UserDetails {
 
     private String name;
     private String email;
+
+    @JsonIgnore
     private String password;
 
     @Enumerated(EnumType.STRING)
-    private Role role; // Changed from Set<Role> to Role
+    private Role role;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
