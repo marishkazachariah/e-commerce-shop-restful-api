@@ -2,60 +2,94 @@ package com.startstepszalando.ecommerceshop.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.context.request.WebRequest;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+    private final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorMessage> handleValidationErrors(MethodArgumentNotValidException ex, WebRequest request) {
+        String errors = ex.getBindingResult().getFieldErrors()
+                .stream().map(FieldError::getDefaultMessage).collect(Collectors.joining(", "));
+        logger.error("Invalid input: " + errors);
+        ErrorMessage message = new ErrorMessage(
+                HttpStatus.BAD_REQUEST.value(),
+                new Date(),
+                "Invalid input: " + errors,
+                request.getDescription(false));
+        return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<?> handleUserNotFoundException(UserNotFoundException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+    public ResponseEntity<ErrorMessage> handleUserNotFoundException(UserNotFoundException ex, WebRequest request) {
+        logger.error("User Not Found Error: {}", ex.getMessage());
+        ErrorMessage message = new ErrorMessage(
+                HttpStatus.NOT_FOUND.value(),
+                new Date(),
+                ex.getMessage(),
+                request.getDescription(false));
+
+        return new ResponseEntity<>(message, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(DuplicateUserException.class)
-    public ResponseEntity<?> handleDuplicateUserException(DuplicateUserException ex) {
+    public ResponseEntity<ErrorMessage> handleDuplicateUser(DuplicateUserException ex, WebRequest request) {
         String responseMessage = ex.getMessage() != null ? ex.getMessage() : "A user with this email already exists";
-        return new ResponseEntity<>(responseMessage, HttpStatus.CONFLICT);
-    }
+        logger.error("Duplicate User Error: {}", responseMessage);
 
-    @ExceptionHandler(InvalidCredentialsException.class)
-    public ResponseEntity<?> handleInvalidCredentialsException(InvalidCredentialsException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNAUTHORIZED);
-    }
+        ErrorMessage message = new ErrorMessage(
+                HttpStatus.BAD_REQUEST.value(),
+                new Date(),
+                responseMessage,
+                request.getDescription(false));
 
-    @ExceptionHandler(PasswordPolicyException.class)
-    public ResponseEntity<?> handlePasswordPolicyException(PasswordPolicyException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(RegistrationException.class)
-    public ResponseEntity<?> handleRegistrationException(RegistrationException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<?> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
-        });
-        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
     }
 
     @ExceptionHandler(TokenValidationException.class)
-    public ResponseEntity<?> handleTokenValidationException(TokenValidationException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNAUTHORIZED);
+    public ResponseEntity<ErrorMessage> handleTokenValidationException(TokenValidationException ex, WebRequest request) {
+        logger.error("Token Validation Error: {}", ex.getMessage());
+        ErrorMessage message = new ErrorMessage(
+                HttpStatus.UNAUTHORIZED.value(),
+                new Date(),
+                ex.getMessage(),
+                request.getDescription(false));
+
+        return new ResponseEntity<>(message, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorMessage> handleAuthenticationException(AuthenticationException ex, WebRequest request) {
+        logger.error("Unauthorized Exception: {}", ex.getMessage());
+        ErrorMessage message = new ErrorMessage(
+                HttpStatus.UNAUTHORIZED.value(),
+                new Date(),
+                ex.getMessage(),
+                request.getDescription(false));
+
+        return new ResponseEntity<ErrorMessage>(message, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<?> handleException(Exception ex) {
-        return new ResponseEntity<>("An error occurred: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    public ResponseEntity<ErrorMessage> globalExceptionHandler(Exception ex, WebRequest request) {
+        logger.error("Internal Server Error: {}", ex.getMessage());
+        ErrorMessage message = new ErrorMessage(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                new Date(),
+                ex.getMessage(),
+                request.getDescription(false));
+
+        return new ResponseEntity<ErrorMessage>(message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

@@ -21,42 +21,46 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 @EnableMethodSecurity
 public class SecurityConfig {
-  private final JwtAuthenticationFilter jwtAuthFilter;
-  private final UserService userService;
-  private final AuthenticationProvider authenticationProvider;
+    private final JwtAuthenticationFilter jwtAuthFilter;
+    private final UserService userService;
+    private final AuthenticationProvider authenticationProvider;
 
-  @Autowired
-  protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-    auth.userDetailsService(userService);
-  }
-  @Bean
+    @Autowired
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(userService);
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-      http
-              .csrf(CsrfConfigurer::disable)
-              .authorizeHttpRequests(auth -> {
-                        auth
-                                .requestMatchers(AUTH_WHITELIST)
-                                .permitAll()
-                                .requestMatchers("/api/users/register", "/api/users/login", "/api/users/error")
-                                .permitAll()
-                                .anyRequest()
-                                .authenticated();
-                      }
-              )
-              .csrf(CsrfConfigurer::disable)
-              .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-              .authenticationProvider(authenticationProvider)
-              .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+        http
+                .csrf(CsrfConfigurer::disable)
+                .authorizeHttpRequests(auth -> {
+                            auth
+                                    .requestMatchers(AUTH_WHITELIST)
+                                    .permitAll()
+                                    .requestMatchers("/api/products/add")
+                                    .hasRole("ADMIN")
+                                    .requestMatchers("/api/products/**")
+                                    .hasAnyRole("ADMIN", "USER")
+                                    .anyRequest()
+                                    .authenticated();
+                        }
+                )
+                .csrf(CsrfConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authenticationProvider(authenticationProvider)
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
-      return http.build();
-  }
+        return http.build();
+    }
 
     private static final String[] AUTH_WHITELIST = {
             "/api/v1/auth/**",
             "/v3/api-docs/**",
             "/v3/api-docs.yaml",
             "/swagger-ui/**",
-            "/swagger-ui.html"
+            "/swagger-ui.html",
+            "/api/users/**"
     };
 }
 
