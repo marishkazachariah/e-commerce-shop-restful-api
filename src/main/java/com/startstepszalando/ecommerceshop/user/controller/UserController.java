@@ -49,11 +49,6 @@ public class UserController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = Exception.class)))
     })
-//    @PostMapping("/register")
-//    public ResponseEntity<?> registerUser(@Valid @RequestBody UserRegistrationRequest request) throws DuplicateUserException {
-//        AuthenticationResponse response = userService.registerUser(request);
-//        return ResponseEntity.ok(response);
-//    }
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(
