@@ -2,8 +2,6 @@ package com.startstepszalando.ecommerceshop.user.dto;
 
 import com.startstepszalando.ecommerceshop.user.model.Role;
 
-import java.util.Set;
-
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
