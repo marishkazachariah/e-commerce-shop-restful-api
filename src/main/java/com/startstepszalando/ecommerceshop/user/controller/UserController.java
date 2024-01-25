@@ -13,8 +13,8 @@ import com.startstepszalando.ecommerceshop.refreshToken.model.RefreshToken;
 import com.startstepszalando.ecommerceshop.refreshToken.service.RefreshTokenService;
 import com.startstepszalando.ecommerceshop.user.dto.UserLoginRequest;
 import com.startstepszalando.ecommerceshop.user.dto.UserRegistrationRequest;
-import com.startstepszalando.ecommerceshop.user.model.User;
 import com.startstepszalando.ecommerceshop.user.repository.UserRepository;
+import com.startstepszalando.ecommerceshop.user.service.UserImpl;
 import com.startstepszalando.ecommerceshop.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -32,11 +32,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -49,7 +46,8 @@ public class UserController {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
-private final UserRepository userRepository;
+    private final UserRepository userRepository;
+
     @Operation(summary = "Register a new user", responses = {
             @ApiResponse(responseCode = "200", description = "User registered successfully",
                     content = @Content(mediaType = "application/json",
@@ -67,7 +65,7 @@ private final UserRepository userRepository;
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(
-    @Valid
+            @Valid
             @RequestBody UserRegistrationRequest request
     ) {
         try {
@@ -99,54 +97,26 @@ private final UserRepository userRepository;
     })
     @PostMapping(value = "/login")
     public ResponseEntity<?> login(@Valid @RequestBody UserLoginRequest loginRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
-        );
+        Authentication authentication = authenticationManager
+                .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        // Extracting username and authorities
-        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-        Collection<? extends GrantedAuthority> authorities = ((UserDetails) authentication.getPrincipal()).getAuthorities();
+        UserImpl userDetails = (UserImpl) authentication.getPrincipal();
 
-        // Load your custom User entity
-        User user = userRepository.findByEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
+        ResponseCookie jwtCookie = jwtService.generateJwtCookie(userDetails);
 
-        ResponseCookie jwt = jwtService.generateJwtCookie(user);
-        List<String> roles = authorities.stream()
+        List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .toList();
 
-        RefreshToken refreshToken = refreshTokenService.createOrUpdateRefreshToken(user.getId());
-        AccessToken responseBody = new AccessToken(username, roles, jwt.getValue(), refreshToken.getToken(), jwt.getMaxAge().toString());
-        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwt.toString())
+        RefreshToken refreshToken = refreshTokenService.createOrUpdateRefreshToken(userDetails.getId());
+        AccessToken responseBody = new AccessToken(userDetails.getUsername(), roles, jwtCookie.getValue(), refreshToken.getToken(), jwtCookie.getMaxAge().toString());
+
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
                 .body(responseBody);
     }
 
-
-//    @PostMapping(value = "/login")
-//    public ResponseEntity<?> login(@Valid @RequestBody UserLoginRequest loginRequest) {
-//        Authentication authentication = authenticationManager.authenticate(
-//                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
-//        );
-//
-//        SecurityContextHolder.getContext().setAuthentication(authentication);
-//        User userDetails = (User) authentication.getPrincipal();
-////        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-////        final String jwt = jwtService.generateToken(userDetails);
-//        ResponseCookie jwt = jwtService.generateJwtCookie(userDetails);
-//
-//        List<String> roles = userDetails.getAuthorities().stream()
-//                .map(GrantedAuthority::getAuthority)
-//                .toList();
-//
-//        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
-//        AccessToken responseBody = new AccessToken(userDetails.getUsername(), roles, jwt.getValue(), refreshToken.getToken(), jwt.getMaxAge().toString());
-//        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwt.toString())
-//                .body(responseBody);
-////        return ResponseEntity.ok(new AuthenticationResponse(jwt.toString(), "User logged in successfully"));
-//    }
 
     @PostMapping("/refreshtoken")
     public ResponseEntity<?> refreshToken(@Valid @RequestBody TokenRefreshRequest request) {
@@ -156,7 +126,7 @@ private final UserRepository userRepository;
                 .map(refreshTokenService::verifyExpiration)
                 .map(RefreshToken::getUser)
                 .map(user -> {
-                    String token = jwtService.extractUsername(user.getUsername());
+                    String token = jwtService.generateTokenFromUsername(user.getEmail());
                     return ResponseEntity.ok(new TokenRefreshResponse(token, requestRefreshToken));
                 })
                 .orElseThrow(() -> new TokenRefreshException(requestRefreshToken,

@@ -27,13 +27,13 @@ public class RefreshTokenService {
     }
 
     public Optional<RefreshToken> findByToken(String token) {
+        System.out.println("find token is: " + token);
         return refreshTokenRepository.findByToken(token);
     }
 
     public RefreshToken createOrUpdateRefreshToken(Long userId) {
         Optional<RefreshToken> existingToken = refreshTokenRepository.findByUserId(userId); // Note this change
         RefreshToken refreshToken;
-        System.out.println("token is here" + existingToken);
 
         if (existingToken.isPresent()) {
             // Update the existing token

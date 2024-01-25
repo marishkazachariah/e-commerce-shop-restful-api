@@ -44,10 +44,12 @@ public class UserService implements UserDetailsService {
                     .password(passwordEncoder.encode(request.getPassword()))
                     .role(request.getRole())
                     .build();
-            userRepository.save(user);
 
+            userRepository.save(user);
             logger.info("Registration successful with email: {}", request.getEmail());
-            var jwtToken = jwtService.generateToken(user);
+
+            UserDetails userDetails = UserImpl.build(user);
+            var jwtToken = jwtService.generateToken(userDetails);
 
             return AuthenticationResponse.builder()
                     .jwtToken(jwtToken)
@@ -63,14 +65,7 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UserNotFoundException {
-        User user = getUserByEmail(username);
-        logger.info("User logged in with email: {}", username);
-
-        Collection<? extends GrantedAuthority> authorities = user.getAuthorities();
-
-        return new org.springframework.security.core.userdetails.User(
-                user.getEmail(),
-                user.getPassword(),
-                authorities);
+        User user = userRepository.findByEmail(username).orElseThrow(() -> new UserNotFoundException("Bad credentials"));
+        return UserImpl.build(user);
     }
 }
