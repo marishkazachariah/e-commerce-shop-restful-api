@@ -2,10 +2,7 @@ package com.startstepszalando.ecommerceshop.user.controller;
 
 import com.startstepszalando.ecommerceshop.auth.AccessToken;
 import com.startstepszalando.ecommerceshop.auth.AuthenticationResponse;
-import com.startstepszalando.ecommerceshop.exception.DuplicateUserException;
-import com.startstepszalando.ecommerceshop.exception.ErrorMessage;
-import com.startstepszalando.ecommerceshop.exception.TokenRefreshException;
-import com.startstepszalando.ecommerceshop.exception.UserNotFoundException;
+import com.startstepszalando.ecommerceshop.exception.*;
 import com.startstepszalando.ecommerceshop.jwt.JwtService;
 import com.startstepszalando.ecommerceshop.refreshToken.dto.TokenRefreshRequest;
 import com.startstepszalando.ecommerceshop.refreshToken.dto.TokenRefreshResponse;
@@ -117,7 +114,20 @@ public class UserController {
                 .body(responseBody);
     }
 
-
+    @Operation(summary = "Refresh authentication token: Provide a valid refresh token to receive a new authentication token", responses = {
+            @ApiResponse(responseCode = "200", description = "Successfully refreshed authentication token",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = TokenRefreshResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Refresh token is not in database",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = TokenValidationException.class))),
+            @ApiResponse(responseCode = "403", description = "Refresh token was expired",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = TokenRefreshException.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Exception.class)))
+    })
     @PostMapping("/refreshtoken")
     public ResponseEntity<?> refreshToken(@Valid @RequestBody TokenRefreshRequest request) {
         String requestRefreshToken = request.getRefreshToken();
