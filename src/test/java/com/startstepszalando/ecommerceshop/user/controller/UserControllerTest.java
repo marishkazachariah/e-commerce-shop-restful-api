@@ -1,8 +1,8 @@
 package com.startstepszalando.ecommerceshop.user.controller;
 
 import com.google.gson.Gson;
-import com.startstepszalando.ecommerceshop.exception.DuplicateUserException;
 import com.startstepszalando.ecommerceshop.exception.TokenRefreshException;
+import com.startstepszalando.ecommerceshop.exception.user.DuplicateUserException;
 import com.startstepszalando.ecommerceshop.jwt.JwtService;
 import com.startstepszalando.ecommerceshop.refreshToken.dto.TokenRefreshRequest;
 import com.startstepszalando.ecommerceshop.refreshToken.dto.TokenRefreshResponse;
