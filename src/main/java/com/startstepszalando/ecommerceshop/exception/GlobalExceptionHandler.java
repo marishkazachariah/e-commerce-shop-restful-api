@@ -1,5 +1,11 @@
 package com.startstepszalando.ecommerceshop.exception;
 
+import com.startstepszalando.ecommerceshop.exception.product.DuplicateProductException;
+import com.startstepszalando.ecommerceshop.exception.product.InsufficientStockException;
+import com.startstepszalando.ecommerceshop.exception.product.ProductNotFoundException;
+import com.startstepszalando.ecommerceshop.exception.token.TokenValidationException;
+import com.startstepszalando.ecommerceshop.exception.user.DuplicateUserException;
+import com.startstepszalando.ecommerceshop.exception.user.UserNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
@@ -78,7 +84,44 @@ public class GlobalExceptionHandler {
                 ex.getMessage(),
                 request.getDescription(false));
 
-        return new ResponseEntity<ErrorMessage>(message, HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(message, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(DuplicateProductException.class)
+    public ResponseEntity<ErrorMessage> handleDuplicateProductException(DuplicateProductException ex, WebRequest request) {
+        logger.error("Duplicate Product Error: {}",  ex.getMessage());
+
+        ErrorMessage message = new ErrorMessage(
+                HttpStatus.BAD_REQUEST.value(),
+                new Date(),
+                ex.getMessage(),
+                request.getDescription(false));
+
+        return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ResponseEntity<ErrorMessage> handleProductNotFoundException(ProductNotFoundException ex, WebRequest request) {
+        logger.error("Product Not Found Error: {}", ex.getMessage());
+        ErrorMessage message = new ErrorMessage(
+                HttpStatus.NOT_FOUND.value(),
+                new Date(),
+                ex.getMessage(),
+                request.getDescription(false));
+
+        return new ResponseEntity<>(message, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(InsufficientStockException.class)
+    public ResponseEntity<ErrorMessage> handleProductExpiredException(InsufficientStockException ex, WebRequest request) {
+        logger.error("Product Expired Error: {}", ex.getMessage());
+        ErrorMessage message = new ErrorMessage(
+                HttpStatus.BAD_REQUEST.value(),
+                new Date(),
+                ex.getMessage(),
+                request.getDescription(false));
+
+        return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(TokenRefreshException.class)
@@ -102,6 +145,6 @@ public class GlobalExceptionHandler {
                 ex.getMessage(),
                 request.getDescription(false));
 
-        return new ResponseEntity<ErrorMessage>(message, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

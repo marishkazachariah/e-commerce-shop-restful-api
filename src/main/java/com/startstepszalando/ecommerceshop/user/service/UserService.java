@@ -1,8 +1,8 @@
 package com.startstepszalando.ecommerceshop.user.service;
 
 import com.startstepszalando.ecommerceshop.auth.AuthenticationResponse;
-import com.startstepszalando.ecommerceshop.exception.DuplicateUserException;
-import com.startstepszalando.ecommerceshop.exception.UserNotFoundException;
+import com.startstepszalando.ecommerceshop.exception.user.DuplicateUserException;
+import com.startstepszalando.ecommerceshop.exception.user.UserNotFoundException;
 import com.startstepszalando.ecommerceshop.jwt.JwtService;
 import com.startstepszalando.ecommerceshop.user.dto.UserRegistrationRequest;
 import com.startstepszalando.ecommerceshop.user.model.User;
