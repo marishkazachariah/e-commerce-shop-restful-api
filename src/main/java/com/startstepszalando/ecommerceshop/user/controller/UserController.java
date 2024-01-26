@@ -108,6 +108,7 @@ public class UserController {
                 .toList();
 
         RefreshToken refreshToken = refreshTokenService.createOrUpdateRefreshToken(userDetails.getId());
+
         AccessToken responseBody = new AccessToken(userDetails.getUsername(), roles, jwtCookie.getValue(), refreshToken.getToken(), jwtCookie.getMaxAge().toString());
 
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
