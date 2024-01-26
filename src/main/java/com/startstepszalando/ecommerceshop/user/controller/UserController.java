@@ -62,7 +62,6 @@ public class UserController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = Exception.class)))
     })
-
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(
             @Valid
