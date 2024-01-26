@@ -1,6 +1,7 @@
 package com.startstepszalando.ecommerceshop.product.service;
 
 import com.startstepszalando.ecommerceshop.exception.product.ProductNotFoundException;
+import com.startstepszalando.ecommerceshop.product.dto.ProductPaginationRequest;
 import com.startstepszalando.ecommerceshop.product.model.Product;
 import com.startstepszalando.ecommerceshop.product.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class ProductService {
@@ -24,11 +27,24 @@ public class ProductService {
     public Page<Product> getAllProducts(int page, int size) throws ProductNotFoundException {
         Pageable pageable = PageRequest.of(page, size);
         Page<Product> products = productRepository.findAll(pageable);
-        if(products.isEmpty()){
+
+        if (products.isEmpty()) {
             throw new ProductNotFoundException(
                     String.format("Page %d not found. Products has %d pages",
                             products.getPageable().getPageNumber(), products.getTotalPages()));
         }
+
         return products;
+    }
+
+
+
+    public ProductPaginationRequest.ProductRequest convertToProductRequest(Product product) {
+        ProductPaginationRequest.ProductRequest productRequest = new ProductPaginationRequest.ProductRequest();
+        productRequest.setName(product.getName());
+        productRequest.setPrice(product.getPrice());
+        productRequest.setDescription(product.getDescription());
+        productRequest.setStock(productRequest.getStock());
+        return productRequest;
     }
 }
