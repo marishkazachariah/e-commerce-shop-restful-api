@@ -2,6 +2,8 @@ package com.startstepszalando.ecommerceshop.refreshToken.service;
 
 import com.startstepszalando.ecommerceshop.exception.TokenRefreshException;
 import com.startstepszalando.ecommerceshop.exception.UserNotFoundException;
+import com.startstepszalando.ecommerceshop.jwt.JwtService;
+import com.startstepszalando.ecommerceshop.refreshToken.dto.TokenRefreshResponse;
 import com.startstepszalando.ecommerceshop.refreshToken.model.RefreshToken;
 import com.startstepszalando.ecommerceshop.refreshToken.repository.RefreshTokenRepository;
 import com.startstepszalando.ecommerceshop.user.model.User;
@@ -67,5 +69,15 @@ public class RefreshTokenService {
         } else {
             throw new UserNotFoundException("User not found with id: " + userId);
         }
+    }
+
+    public TokenRefreshResponse refreshToken(String requestRefreshToken, JwtService jwtService) throws TokenRefreshException {
+        RefreshToken refreshToken = findByToken(requestRefreshToken)
+                .orElseThrow(() -> new TokenRefreshException(requestRefreshToken, "Refresh token is not in database!"));
+
+        verifyExpiration(refreshToken);
+        User user = refreshToken.getUser();
+        String token = jwtService.generateTokenFromUsername(user.getEmail());
+        return new TokenRefreshResponse(token, requestRefreshToken);
     }
 }

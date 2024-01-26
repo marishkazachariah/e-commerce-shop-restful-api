@@ -5,6 +5,7 @@ import com.startstepszalando.ecommerceshop.exception.DuplicateUserException;
 import com.startstepszalando.ecommerceshop.exception.TokenRefreshException;
 import com.startstepszalando.ecommerceshop.jwt.JwtService;
 import com.startstepszalando.ecommerceshop.refreshToken.dto.TokenRefreshRequest;
+import com.startstepszalando.ecommerceshop.refreshToken.dto.TokenRefreshResponse;
 import com.startstepszalando.ecommerceshop.refreshToken.model.RefreshToken;
 import com.startstepszalando.ecommerceshop.refreshToken.service.RefreshTokenService;
 import com.startstepszalando.ecommerceshop.user.dto.UserLoginRequest;
@@ -22,17 +23,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.Instant;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -204,8 +200,13 @@ class UserControllerTest {
         TokenRefreshRequest tokenRequest = new TokenRefreshRequest();
         String token = UUID.randomUUID().toString();
         tokenRequest.setRefreshToken(token);
+
+        given(tokenService.refreshToken(token, jwtService))
+                .willThrow(new TokenRefreshException(token, "Refresh token is not in database!"));
+
         String expectedErrorMessage = String.format("Failed for [%s]: %s", token, "Refresh token is not in database!");
         Gson gson = new Gson();
+
         ResultActions perform = mvc.perform(
                         post("/api/users/refreshtoken")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -228,6 +229,8 @@ class UserControllerTest {
         refreshToken.setToken(tokenValue);
         given(tokenService.findByToken(tokenValue)).willReturn(Optional.of(refreshToken));
         given(tokenService.verifyExpiration(refreshToken)).willReturn(refreshToken);
+        given(tokenService.refreshToken(tokenValue, jwtService)).willReturn(new TokenRefreshResponse(tokenValue, tokenValue));
+
         tokenRequest.setRefreshToken(tokenValue);
         Gson gson = new Gson();
         ResultActions perform = mvc.perform(
@@ -253,7 +256,7 @@ class UserControllerTest {
         refreshToken.setToken(tokenValue);
         tokenRequest.setRefreshToken(tokenValue);
         given(tokenService.findByToken(tokenValue)).willReturn(Optional.of(refreshToken));
-        given(tokenService.verifyExpiration(refreshToken)).willThrow(new TokenRefreshException(tokenValue, "Refresh token was expired. Please make a new signin request"));
+        given(tokenService.refreshToken(tokenValue, jwtService)).willThrow(new TokenRefreshException(tokenValue, "Refresh token was expired. Please make a new signin request"));
         String expectedErrorMessage = String.format("Failed for [%s]: %s", tokenValue, "Refresh token was expired. Please make a new signin request");
         Gson gson = new Gson();
         ResultActions perform = mvc.perform(

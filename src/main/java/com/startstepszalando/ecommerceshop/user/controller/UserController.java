@@ -131,16 +131,21 @@ public class UserController {
     })
     @PostMapping("/refreshtoken")
     public ResponseEntity<?> refreshToken(@Valid @RequestBody TokenRefreshRequest request) {
-        String requestRefreshToken = request.getRefreshToken();
-
-        return refreshTokenService.findByToken(requestRefreshToken)
-                .map(refreshTokenService::verifyExpiration)
-                .map(RefreshToken::getUser)
-                .map(user -> {
-                    String token = jwtService.generateTokenFromUsername(user.getEmail());
-                    return ResponseEntity.ok(new TokenRefreshResponse(token, requestRefreshToken));
-                })
-                .orElseThrow(() -> new TokenRefreshException(requestRefreshToken,
-                        "Refresh token is not in database!"));
+        TokenRefreshResponse response = refreshTokenService.refreshToken(request.getRefreshToken(), jwtService);
+        return ResponseEntity.ok(response);
     }
+//    @PostMapping("/refreshtoken")
+//    public ResponseEntity<?> refreshToken(@Valid @RequestBody TokenRefreshRequest request) {
+//        String requestRefreshToken = request.getRefreshToken();
+//
+//        return refreshTokenService.findByToken(requestRefreshToken)
+//                .map(refreshTokenService::verifyExpiration)
+//                .map(RefreshToken::getUser)
+//                .map(user -> {
+//                    String token = jwtService.generateTokenFromUsername(user.getEmail());
+//                    return ResponseEntity.ok(new TokenRefreshResponse(token, requestRefreshToken));
+//                })
+//                .orElseThrow(() -> new TokenRefreshException(requestRefreshToken,
+//                        "Refresh token is not in database!"));
+//    }
 }
