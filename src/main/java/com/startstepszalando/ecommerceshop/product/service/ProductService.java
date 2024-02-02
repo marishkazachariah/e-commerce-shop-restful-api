@@ -13,14 +13,11 @@ import com.startstepszalando.ecommerceshop.user.service.UserService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.nio.file.AccessDeniedException;
-import java.util.Collections;
 
 @Service
 public class ProductService {
@@ -37,12 +34,14 @@ public class ProductService {
         return productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException(String.format("Product with id %d is not found", id)));
     }
 
-    public Page<Product> getAllProducts(int page, int size) {
+    public Page<Product> getAllProducts(int page, int size) throws ProductNotFoundException {
         Pageable pageable = PageRequest.of(page, size);
         Page<Product> products = productRepository.findAll(pageable);
 
         if (products.isEmpty()) {
-            return new PageImpl<>(Collections.emptyList(), pageable, 0);
+            throw new ProductNotFoundException(
+                    String.format("Page %d not found. Products has %d pages",
+                            products.getPageable().getPageNumber(), products.getTotalPages()));
         }
 
         return products;
@@ -57,7 +56,7 @@ public class ProductService {
         User admin = userService.findById(adminId)
                 .orElseThrow(() -> new UserNotFoundException("Invalid ID: user not found"));
 
-        if (isAdminUser(admin)) {
+        if (!isAdminUser(admin)) {
             throw new AccessDeniedException("Access denied: You don't have permissions for this action");
         }
 
@@ -92,9 +91,8 @@ public class ProductService {
     }
 
     @Transactional
-    public boolean deleteProduct(long id) throws ProductNotFoundException {
+    public void deleteProduct(long id) throws ProductNotFoundException {
         productRepository.delete(getProductById(id));
-        return true;
     }
 
     public ProductPaginationRequest.ProductRequest convertToProductRequest(Product product) {
@@ -108,6 +106,6 @@ public class ProductService {
 
     private boolean isAdminUser(User user) {
         Role role = user.getRole();
-        return !role.name().equals("ADMIN");
+        return role.name().equals("ADMIN");
     }
 }
