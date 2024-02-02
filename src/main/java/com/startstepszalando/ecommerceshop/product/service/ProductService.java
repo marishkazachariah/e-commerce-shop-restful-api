@@ -13,10 +13,12 @@ import com.startstepszalando.ecommerceshop.user.service.UserService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.nio.file.AccessDeniedException;
 
 @Service
@@ -34,14 +36,12 @@ public class ProductService {
         return productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException(String.format("Product with id %d is not found", id)));
     }
 
-    public Page<Product> getAllProducts(int page, int size) throws ProductNotFoundException {
+    public Page<Product> getAllProducts(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Product> products = productRepository.findAll(pageable);
 
         if (products.isEmpty()) {
-            throw new ProductNotFoundException(
-                    String.format("Page %d not found. Products has %d pages",
-                            products.getPageable().getPageNumber(), products.getTotalPages()));
+            return new PageImpl<>(Collections.emptyList(), pageable, 0);
         }
 
         return products;
@@ -91,8 +91,9 @@ public class ProductService {
     }
 
     @Transactional
-    public void deleteProduct(long id) throws ProductNotFoundException {
+    public boolean deleteProduct(long id) throws ProductNotFoundException {
         productRepository.delete(getProductById(id));
+        return true;
     }
 
     public ProductPaginationRequest.ProductRequest convertToProductRequest(Product product) {
@@ -106,6 +107,6 @@ public class ProductService {
 
     private boolean isAdminUser(User user) {
         Role role = user.getRole();
-        return role.name().equals("ADMIN");
+        return !role.name().equals("ADMIN");
     }
 }
