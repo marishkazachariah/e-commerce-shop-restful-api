@@ -1,4 +1,4 @@
-package com.startstepszalando.ecommerceshop.auth;
+package com.startstepszalando.ecommerceshop.config;
 
 import com.startstepszalando.ecommerceshop.product.controller.ProductController;
 import com.startstepszalando.ecommerceshop.user.controller.UserController;
@@ -17,12 +17,12 @@ import org.springframework.context.annotation.Configuration;
 import java.util.List;
 @Configuration
 @OpenAPIDefinition
-public class OpenAPIConfiguration {
-    private final String devUrl = "http://localhost:8080/";
+public class OpenAPIConfig {
 
     @Bean
     public OpenAPI openAPI(){
         Server devServer = new Server();
+        String devUrl = "http://localhost:8080/";
         devServer.setUrl(devUrl);
         devServer.setDescription("Server URL for DEV - API E-Commerce shop");
 
