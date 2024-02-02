@@ -1,6 +1,5 @@
 package com.startstepszalando.ecommerceshop.exception;
 
-import com.startstepszalando.ecommerceshop.exception.product.AdminUserNotFoundException;
 import com.startstepszalando.ecommerceshop.exception.product.DuplicateProductException;
 import com.startstepszalando.ecommerceshop.exception.product.InsufficientStockException;
 import com.startstepszalando.ecommerceshop.exception.product.ProductNotFoundException;
@@ -9,6 +8,7 @@ import com.startstepszalando.ecommerceshop.exception.user.DuplicateUserException
 import com.startstepszalando.ecommerceshop.exception.user.UserNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -88,6 +88,19 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(message, HttpStatus.UNAUTHORIZED);
     }
 
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorMessage> handleAccessDeniedException(
+            AccessDeniedException ex, WebRequest request) {
+        logger.error("Access denied error: {}", ex.getMessage());
+        ErrorMessage message = new ErrorMessage(
+                HttpStatus.FORBIDDEN.value(),
+                new Date(),
+                ex.getMessage() + " - you don't have permissions for this action",
+                request.getDescription(false));
+
+        return new ResponseEntity<ErrorMessage>(message, HttpStatus.FORBIDDEN);
+    }
+
     @ExceptionHandler(DuplicateProductException.class)
     public ResponseEntity<ErrorMessage> handleDuplicateProductException(DuplicateProductException ex, WebRequest request) {
         logger.error("Duplicate Product Error: {}",  ex.getMessage());
@@ -123,18 +136,6 @@ public class GlobalExceptionHandler {
                 request.getDescription(false));
 
         return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(AdminUserNotFoundException.class)
-    public ResponseEntity<ErrorMessage> handleAdminUserNotFoundException(AdminUserNotFoundException ex, WebRequest request) {
-        logger.error("Admin User Not Found Error: {}", ex.getMessage());
-        ErrorMessage message = new ErrorMessage(
-                HttpStatus.NOT_FOUND.value(),
-                new Date(),
-                ex.getMessage(),
-                request.getDescription(false));
-
-        return new ResponseEntity<>(message, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(TokenRefreshException.class)

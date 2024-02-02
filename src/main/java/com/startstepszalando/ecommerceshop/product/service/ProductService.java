@@ -1,6 +1,5 @@
 package com.startstepszalando.ecommerceshop.product.service;
 
-import com.startstepszalando.ecommerceshop.exception.product.AdminUserNotFoundException;
 import com.startstepszalando.ecommerceshop.exception.product.DuplicateProductException;
 import com.startstepszalando.ecommerceshop.exception.product.InsufficientStockException;
 import com.startstepszalando.ecommerceshop.exception.product.ProductNotFoundException;
@@ -17,6 +16,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.nio.file.AccessDeniedException;
 
 @Service
 public class ProductService {
@@ -47,7 +48,7 @@ public class ProductService {
     }
 
     public Product createProduct(Product product, Long adminId) throws
-            DuplicateProductException, InsufficientStockException {
+            DuplicateProductException, InsufficientStockException, AccessDeniedException {
         if (productRepository.hasEntityWithNameAndPrice(product.getName(), product.getPrice())) {
             throw new DuplicateProductException(String.format("Product with name %s and price %.2f already exists", product.getName(), product.getPrice()));
         }
@@ -56,7 +57,7 @@ public class ProductService {
                 .orElseThrow(() -> new UserNotFoundException("Invalid ID: user not found"));
 
         if (!isAdminUser(admin)) {
-            throw new AdminUserNotFoundException("Invalid adminId: ID is from customer and not from admin");
+            throw new AccessDeniedException("Access denied: You don't have permissions for this action");
         }
 
         if (product.getStock() <= 0) {
@@ -69,12 +70,12 @@ public class ProductService {
 
     @Transactional
     public Product updateProduct(long id, Product product, Long adminId) throws
-            ProductNotFoundException, InsufficientStockException {
+            ProductNotFoundException, InsufficientStockException, AccessDeniedException {
         User admin = userService.findById(adminId)
                 .orElseThrow(() -> new UserNotFoundException("Invalid userId: user not found"));
 
         if (!isAdminUser(admin)) {
-            throw new AdminUserNotFoundException("User does not have admin privileges");
+            throw new AccessDeniedException("Access denied: You don't have permissions for this action");
         }
 
         Product productToUpdate = getProductById(id);

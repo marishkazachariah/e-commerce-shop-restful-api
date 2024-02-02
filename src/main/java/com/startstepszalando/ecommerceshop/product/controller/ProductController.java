@@ -1,7 +1,6 @@
 package com.startstepszalando.ecommerceshop.product.controller;
 
 import com.startstepszalando.ecommerceshop.auth.AuthenticationResponse;
-import com.startstepszalando.ecommerceshop.exception.product.AdminUserNotFoundException;
 import com.startstepszalando.ecommerceshop.exception.product.DuplicateProductException;
 import com.startstepszalando.ecommerceshop.exception.product.InsufficientStockException;
 import com.startstepszalando.ecommerceshop.exception.product.ProductNotFoundException;
@@ -22,6 +21,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 @RestController
@@ -44,9 +44,6 @@ public class ProductController {
             @ApiResponse(responseCode = "400", description = "Insufficient stock.",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = InsufficientStockException.class))),
-            @ApiResponse(responseCode = "404", description = "Admin user not found",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = AdminUserNotFoundException.class))),
             @ApiResponse(responseCode = "404", description = "User not found",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = UserNotFoundException.class))),
@@ -57,7 +54,7 @@ public class ProductController {
     @PostMapping
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Product> addProduct(@Valid @RequestBody ProductRequest productRequest)
-            throws DuplicateProductException, InsufficientStockException {
+            throws DuplicateProductException, InsufficientStockException, AccessDeniedException {
         Product product = convertDtoToEntity(productRequest);
         Product addedProduct = productService.createProduct(product, productRequest.getAdminId());
 
@@ -77,9 +74,6 @@ public class ProductController {
             @ApiResponse(responseCode = "404", description = "Product not found",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ProductNotFoundException.class))),
-            @ApiResponse(responseCode = "404", description = "Admin user not found",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = AdminUserNotFoundException.class))),
             @ApiResponse(responseCode = "404", description = "User not found",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = UserNotFoundException.class))),
@@ -92,7 +86,7 @@ public class ProductController {
     public ResponseEntity<Product> updateProduct(@PathVariable("id") long id,
                                                  @Valid @RequestBody
                                                  ProductRequest productRequest)
-            throws ProductNotFoundException, InsufficientStockException {
+            throws ProductNotFoundException, InsufficientStockException, AccessDeniedException {
         Product product = convertDtoToEntity(productRequest);
         Product updatedProduct = productService.updateProduct(id, product, productRequest.getAdminId());
 
