@@ -8,6 +8,7 @@ import com.startstepszalando.ecommerceshop.exception.user.DuplicateUserException
 import com.startstepszalando.ecommerceshop.exception.user.UserNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -85,6 +86,19 @@ public class GlobalExceptionHandler {
                 request.getDescription(false));
 
         return new ResponseEntity<>(message, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorMessage> handleAccessDeniedException(
+            AccessDeniedException ex, WebRequest request) {
+        logger.error("Access denied error: {}", ex.getMessage());
+        ErrorMessage message = new ErrorMessage(
+                HttpStatus.FORBIDDEN.value(),
+                new Date(),
+                ex.getMessage() + " - you don't have permissions for this action",
+                request.getDescription(false));
+
+        return new ResponseEntity<ErrorMessage>(message, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(DuplicateProductException.class)

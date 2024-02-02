@@ -1,4 +1,4 @@
-package com.startstepszalando.ecommerceshop.auth;
+package com.startstepszalando.ecommerceshop.config;
 
 import com.startstepszalando.ecommerceshop.product.controller.ProductController;
 import com.startstepszalando.ecommerceshop.user.controller.UserController;
@@ -11,14 +11,17 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.servers.Server;
 import org.springdoc.core.utils.SpringDocUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
+
 @Configuration
 @OpenAPIDefinition
-public class OpenAPIConfiguration {
-    private final String devUrl = "http://localhost:8080/";
+public class OpenAPIConfig {
+    @Value("${dev.url}")
+    private String devUrl;
 
     @Bean
     public OpenAPI openAPI(){
