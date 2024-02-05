@@ -91,8 +91,9 @@ public class ProductService {
     }
 
     @Transactional
-    public void deleteProduct(long id) throws ProductNotFoundException {
+    public boolean deleteProduct(long id) throws ProductNotFoundException {
         productRepository.delete(getProductById(id));
+        return true;
     }
 
     public ProductPaginationRequest.ProductRequest convertToProductRequest(Product product) {
