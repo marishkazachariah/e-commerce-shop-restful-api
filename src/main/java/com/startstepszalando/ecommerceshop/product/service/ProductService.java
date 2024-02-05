@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.AccessDeniedException;
+import java.util.Collections;
 
 @Service
 public class ProductService {
@@ -56,7 +57,7 @@ public class ProductService {
         User admin = userService.findById(adminId)
                 .orElseThrow(() -> new UserNotFoundException("Invalid ID: user not found"));
 
-        if (!isAdminUser(admin)) {
+        if (isAdminUser(admin)) {
             throw new AccessDeniedException("Access denied: You don't have permissions for this action");
         }
 
@@ -91,8 +92,9 @@ public class ProductService {
     }
 
     @Transactional
-    public void deleteProduct(long id) throws ProductNotFoundException {
+    public boolean deleteProduct(long id) throws ProductNotFoundException {
         productRepository.delete(getProductById(id));
+        return true;
     }
 
     public ProductPaginationRequest.ProductRequest convertToProductRequest(Product product) {
