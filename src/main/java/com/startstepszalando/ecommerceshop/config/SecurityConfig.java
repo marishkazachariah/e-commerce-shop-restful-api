@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -40,8 +41,6 @@ public class SecurityConfig {
                             auth
                                     .requestMatchers(AUTH_WHITELIST)
                                     .permitAll()
-                                    .requestMatchers(HttpMethod.GET, "/api/products/**")
-                                    .permitAll()
                                     .requestMatchers(HttpMethod.POST, "/api/products")
                                     .hasAuthority("ADMIN")
                                     .requestMatchers(HttpMethod.PUT, "/api/products/**")
@@ -67,6 +66,7 @@ public class SecurityConfig {
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/api/users/**",
+            "/api/products/**"
     };
 }
 
