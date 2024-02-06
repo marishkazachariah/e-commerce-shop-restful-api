@@ -1,15 +1,19 @@
 package com.startstepszalando.ecommerceshop.cart.model;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.startstepszalando.ecommerceshop.product.model.Product;
 import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "cart_item")
 @IdClass(CartItemId.class)
+@EqualsAndHashCode
 public class CartItem {
 
     @Id
