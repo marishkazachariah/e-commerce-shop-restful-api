@@ -1,5 +1,6 @@
 package com.startstepszalando.ecommerceshop.cart.service;
 
+import com.startstepszalando.ecommerceshop.cart.dto.CartItemRequest;
 import com.startstepszalando.ecommerceshop.cart.model.Cart;
 import com.startstepszalando.ecommerceshop.cart.model.CartItem;
 import com.startstepszalando.ecommerceshop.cart.model.CartItemId;
@@ -15,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -32,26 +34,30 @@ public class CartService {
     @Autowired
     private ProductRepository productRepository;
 
-    public Cart createCartForUser(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
-
-        Cart cart = new Cart();
-        cart.setUser(user);
-        return cartRepository.save(cart);
-    }
-
     public Cart getMyCart() {
         Long userId = getCurrentUserId();
+        System.out.println("user id is: " + userId);
         return cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("Cart not found for userId: " + userId));
+    }
+
+    public List<CartItemRequest> getMyCartDetails() {
+        Long userId = getCurrentUserId();
+        System.out.println("User ID is: " + userId);
+
+        List<CartItemRequest> cartItems = cartItemRepository.findCartDetailsByUserId(userId);
+
+        if (cartItems.isEmpty()) {
+            throw new RuntimeException("Cart not found for userId: " + userId);
+        }
+
+        return cartItems;
     }
 
     @Transactional
     public void addProductToCart(Long productId, Integer quantity) {
         Long userId = getCurrentUserId();
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
@@ -67,19 +73,27 @@ public class CartService {
 
     @Transactional
     public void removeProductFromCart(Long productId) {
-        Long userId = getCurrentUserId();
-        Cart cart = getMyCart(); // Use getMyCart to fetch the cart
+        Cart cart = getMyCart();
         CartItemId cartItemId = new CartItemId(cart.getId(), productId);
         cartItemRepository.deleteById(cartItemId);
     }
 
     private Long getCurrentUserId() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof UserImpl) { // Ensure it's an instance of UserImpl
+        if (principal instanceof UserImpl) {
             return ((UserImpl) principal).getId();
         } else {
             throw new RuntimeException("Expected principal to be an instance of UserImpl");
         }
+    }
+
+    public Cart createCartForUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+
+        Cart cart = new Cart();
+        cart.setUser(user);
+        return cartRepository.save(cart);
     }
 
     public BigDecimal calculateTotalCost(Long cartId) {

@@ -1,6 +1,7 @@
 package com.startstepszalando.ecommerceshop.cart.model;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.startstepszalando.ecommerceshop.user.model.User;
 import jakarta.persistence.*;
@@ -14,6 +15,7 @@ import java.util.Set;
 @Data
 @NoArgsConstructor
 @Table(name = "carts")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Cart {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
