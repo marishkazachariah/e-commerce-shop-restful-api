@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class CartService {
@@ -43,7 +42,6 @@ public class CartService {
 
     public List<CartItemRequest> getMyCartDetails() {
         Long userId = getCurrentUserId();
-        System.out.println("User ID is: " + userId);
 
         List<CartItemRequest> cartItems = cartItemRepository.findCartDetailsByUserId(userId);
 
@@ -96,11 +94,13 @@ public class CartService {
         return cartRepository.save(cart);
     }
 
-    public BigDecimal calculateTotalCost(Long cartId) {
-        Optional<Cart> cart = cartRepository.findById(cartId);
-        return cart.map(c -> c.getItems().stream()
-                        .map(item -> item.getProduct().getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
-                        .reduce(BigDecimal.ZERO, BigDecimal::add))
-                .orElse(BigDecimal.ZERO);
+    public BigDecimal calculateTotalCost() {
+        List<CartItemRequest> cartItems = getMyCartDetails();
+
+        BigDecimal totalCost = cartItems.stream()
+                .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return totalCost;
     }
 }

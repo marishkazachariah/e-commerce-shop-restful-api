@@ -45,8 +45,7 @@ public class CartController {
     @GetMapping("/total")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<BigDecimal> getCartTotal() {
-        Long cartId = cartService.getMyCart().getId();
-        BigDecimal totalCost = cartService.calculateTotalCost(cartId);
+        BigDecimal totalCost = cartService.calculateTotalCost();
         return ResponseEntity.ok(totalCost);
     }
 }
