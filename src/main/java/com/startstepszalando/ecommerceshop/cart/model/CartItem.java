@@ -1,5 +1,6 @@
 package com.startstepszalando.ecommerceshop.cart.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.startstepszalando.ecommerceshop.product.model.Product;
 import jakarta.persistence.*;
 import lombok.*;
@@ -10,6 +11,8 @@ import lombok.*;
 @AllArgsConstructor
 @Table(name = "cart_item")
 @IdClass(CartItemId.class)
+@EqualsAndHashCode
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class CartItem {
 
     @Id
@@ -25,3 +28,4 @@ public class CartItem {
     @Column(nullable = false)
     private Integer quantity;
 }
+
