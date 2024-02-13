@@ -1,4 +1,4 @@
-package com.startstepszalando.ecommerceshop.exception;
+package com.startstepszalando.ecommerceshop.exception.token;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

@@ -3,6 +3,7 @@ package com.startstepszalando.ecommerceshop.user.controller;
 import com.startstepszalando.ecommerceshop.auth.AccessToken;
 import com.startstepszalando.ecommerceshop.auth.AuthenticationResponse;
 import com.startstepszalando.ecommerceshop.exception.*;
+import com.startstepszalando.ecommerceshop.exception.token.TokenRefreshException;
 import com.startstepszalando.ecommerceshop.exception.token.TokenValidationException;
 import com.startstepszalando.ecommerceshop.exception.user.DuplicateUserException;
 import com.startstepszalando.ecommerceshop.exception.user.UserNotFoundException;

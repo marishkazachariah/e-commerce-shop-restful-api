@@ -1,6 +1,6 @@
 package com.startstepszalando.ecommerceshop.refreshToken.service;
 
-import com.startstepszalando.ecommerceshop.exception.TokenRefreshException;
+import com.startstepszalando.ecommerceshop.exception.token.TokenRefreshException;
 import com.startstepszalando.ecommerceshop.exception.user.UserNotFoundException;
 import com.startstepszalando.ecommerceshop.jwt.JwtService;
 import com.startstepszalando.ecommerceshop.refreshToken.dto.TokenRefreshResponse;
