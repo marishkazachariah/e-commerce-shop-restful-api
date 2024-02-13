@@ -1,6 +1,6 @@
 package com.startstepszalando.ecommerceshop.cart.controller;
 
-import com.startstepszalando.ecommerceshop.cart.dto.CartItemRequest;
+import com.startstepszalando.ecommerceshop.cart.dto.CartResponse;
 import com.startstepszalando.ecommerceshop.cart.service.CartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -8,7 +8,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/cart")
@@ -37,10 +36,11 @@ public class CartController {
 
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<CartItemRequest>> getMyCartDetails() {
-        List<CartItemRequest> cartDetails = cartService.getMyCartDetails();
+    public ResponseEntity<CartResponse> getCartDetails() {
+        CartResponse cartDetails = cartService.getMyCartDetails();
         return ResponseEntity.ok(cartDetails);
     }
+
 
     @GetMapping("/total")
     @PreAuthorize("isAuthenticated()")

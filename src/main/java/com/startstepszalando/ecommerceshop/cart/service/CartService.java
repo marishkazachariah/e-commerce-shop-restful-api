@@ -1,6 +1,7 @@
 package com.startstepszalando.ecommerceshop.cart.service;
 
-import com.startstepszalando.ecommerceshop.cart.dto.CartItemRequest;
+import com.startstepszalando.ecommerceshop.cart.dto.CartItemResponse;
+import com.startstepszalando.ecommerceshop.cart.dto.CartResponse;
 import com.startstepszalando.ecommerceshop.cart.model.Cart;
 import com.startstepszalando.ecommerceshop.cart.model.CartItem;
 import com.startstepszalando.ecommerceshop.cart.model.CartItemId;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -37,19 +39,22 @@ public class CartService {
         Long userId = getCurrentUserId();
         System.out.println("user id is: " + userId);
         return cartRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Cart not found for userId: " + userId));
+                .orElseGet(() -> createCartForUser(userId));
     }
 
-    public List<CartItemRequest> getMyCartDetails() {
+    public CartResponse getMyCartDetails() {
         Long userId = getCurrentUserId();
+        Cart cart = cartRepository.findByUserId(userId)
+                .orElseGet(() -> createCartForUser(userId));
 
-        List<CartItemRequest> cartItems = cartItemRepository.findCartDetailsByUserId(userId);
+        List<CartItemResponse> cartItems = cartItemRepository.findCartDetailsByUserId(userId)
+                .stream()
+                .map(item -> new CartItemResponse(item.getProductId(), item.getProductName(), item.getQuantity(), item.getPrice()))
+                .toList();
 
-        if (cartItems.isEmpty()) {
-            throw new RuntimeException("Cart not found for userId: " + userId);
-        }
+        String message = cartItems.isEmpty() ? "The user's cart is empty" : "";
 
-        return cartItems;
+        return new CartResponse(cart.getId(), cartItems, message);
     }
 
     @Transactional
@@ -76,6 +81,19 @@ public class CartService {
         cartItemRepository.deleteById(cartItemId);
     }
 
+    @Transactional
+    public Cart saveCart(Cart cart) {
+        return cartRepository.save(cart);
+    }
+
+    @Transactional
+    public void clearCart(Cart cart) {
+        cartItemRepository.deleteByCartId(cart.getId());
+
+        cart.getItems().clear();
+        saveCart(cart);
+    }
+
     private Long getCurrentUserId() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principal instanceof UserImpl) {
@@ -95,12 +113,12 @@ public class CartService {
     }
 
     public BigDecimal calculateTotalCost() {
-        List<CartItemRequest> cartItems = getMyCartDetails();
+        CartResponse cartResponse = getMyCartDetails();
 
-        BigDecimal totalCost = cartItems.stream()
+        List<CartItemResponse> cartItems = cartResponse.getItems();
+
+        return cartItems.stream()
                 .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        return totalCost;
     }
 }
