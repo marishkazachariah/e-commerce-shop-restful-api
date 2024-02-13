@@ -18,7 +18,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.AccessDeniedException;
-import java.util.Collections;
 
 @Service
 public class ProductService {
@@ -104,6 +103,19 @@ public class ProductService {
         productRequest.setDescription(product.getDescription());
         productRequest.setStock(productRequest.getStock());
         return productRequest;
+    }
+
+    @Transactional
+    public void updateProductStock(Long productId, int quantity) throws ProductNotFoundException, InsufficientStockException {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductNotFoundException("Product with ID " + productId + " not found"));
+
+        if (product.getStock() < quantity) {
+            throw new InsufficientStockException("Insufficient stock for product: " + product.getName());
+        }
+
+        product.setStock(product.getStock() - quantity);
+        productRepository.save(product);
     }
 
     private boolean isAdminUser(User user) {

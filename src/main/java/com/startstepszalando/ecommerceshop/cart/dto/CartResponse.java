@@ -9,8 +9,9 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CartRequest {
+public class CartResponse {
     private Long id;
-    private List<CartItemRequest> items;
+    private List<CartItemResponse> items;
+    private String message;
 }
 

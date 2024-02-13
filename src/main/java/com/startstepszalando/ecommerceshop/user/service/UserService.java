@@ -67,4 +67,8 @@ public class UserService implements UserDetailsService {
     public Optional<User> findById(Long id) {
         return userRepository.findById(id);
     }
+
+    public boolean isValidUserDetails(User user) {
+        return user.getEmail() != null && !user.getEmail().trim().isEmpty();
+    }
 }
