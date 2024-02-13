@@ -19,34 +19,35 @@ import com.startstepszalando.ecommerceshop.product.model.Product;
 import com.startstepszalando.ecommerceshop.product.service.ProductService;
 import com.startstepszalando.ecommerceshop.user.model.User;
 import com.startstepszalando.ecommerceshop.user.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 public class OrderService {
 
-    @Autowired
-    private CartService cartService;
+    private final CartService cartService;
+    private final OrderRepository orderRepository;
+    private final OrderProductRepository orderProductRepository;
+    private final ProductService productService;
+    private final UserService userService;
 
-    @Autowired
-    private OrderRepository orderRepository;
-
-    @Autowired
-    private OrderProductRepository orderProductRepository;
-
-    @Autowired
-    private ProductService productService;
-
-    @Autowired
-    private UserService userService;
+    public OrderService(CartService cartService, OrderRepository orderRepository,
+                        OrderProductRepository orderProductRepository,
+                        ProductService productService, UserService userService) {
+        this.cartService = cartService;
+        this.orderRepository = orderRepository;
+        this.orderProductRepository = orderProductRepository;
+        this.productService = productService;
+        this.userService = userService;
+    }
 
     @Transactional
     public Order createOrderFromCart(Cart cart) throws InsufficientStockException, ProductNotFoundException {
-        if (cart.getItems() == null || cart.getItems().isEmpty()) {
+        if(cartService.calculateTotalCost().compareTo(BigDecimal.ZERO) <= 0) {
             throw new EmptyCartException("Cannot create order from an empty cart.");
         }
 

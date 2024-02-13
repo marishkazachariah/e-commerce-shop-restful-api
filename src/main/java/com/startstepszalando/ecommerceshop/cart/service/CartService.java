@@ -22,18 +22,18 @@ import java.util.List;
 
 @Service
 public class CartService {
+    private final UserRepository userRepository;
+    private final CartRepository cartRepository;
+    private final CartItemRepository cartItemRepository;
+    private final ProductRepository productRepository;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private CartRepository cartRepository;
-
-    @Autowired
-    private CartItemRepository cartItemRepository;
-
-    @Autowired
-    private ProductRepository productRepository;
+    public CartService(UserRepository userRepository, CartRepository cartRepository,
+                       CartItemRepository cartItemRepository, ProductRepository productRepository) {
+        this.userRepository = userRepository;
+        this.cartRepository = cartRepository;
+        this.cartItemRepository = cartItemRepository;
+        this.productRepository = productRepository;
+    }
 
     public Cart getMyCart() {
         Long userId = getCurrentUserId();
