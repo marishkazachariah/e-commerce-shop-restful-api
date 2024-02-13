@@ -1,5 +1,6 @@
 package com.startstepszalando.ecommerceshop.exception;
 
+import com.startstepszalando.ecommerceshop.exception.order.OrderNotFoundException;
 import com.startstepszalando.ecommerceshop.exception.product.DuplicateProductException;
 import com.startstepszalando.ecommerceshop.exception.product.InsufficientStockException;
 import com.startstepszalando.ecommerceshop.exception.product.ProductNotFoundException;
@@ -136,6 +137,18 @@ public class GlobalExceptionHandler {
                 request.getDescription(false));
 
         return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(OrderNotFoundException.class)
+    public ResponseEntity<ErrorMessage> handleOrderNotFoundException(OrderNotFoundException ex, WebRequest request) {
+        logger.error("Order Not Found Error: {}", ex.getMessage());
+        ErrorMessage message = new ErrorMessage(
+                HttpStatus.NOT_FOUND.value(),
+                new Date(),
+                ex.getMessage(),
+                request.getDescription(false));
+
+        return new ResponseEntity<>(message, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(TokenRefreshException.class)
