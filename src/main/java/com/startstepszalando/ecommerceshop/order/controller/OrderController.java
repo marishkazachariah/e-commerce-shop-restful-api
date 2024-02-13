@@ -7,33 +7,44 @@ import com.startstepszalando.ecommerceshop.exception.product.ProductNotFoundExce
 import com.startstepszalando.ecommerceshop.order.dto.OrderResponse;
 import com.startstepszalando.ecommerceshop.order.model.Order;
 import com.startstepszalando.ecommerceshop.order.service.OrderService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.nio.file.AccessDeniedException;
 
 @RestController
 @RequestMapping("/api/orders")
 public class OrderController {
+    private final OrderService orderService;
+    private final CartService cartService;
 
-    @Autowired
-    private OrderService orderService;
-
-    @Autowired
-    private CartService cartService;
+    public OrderController(OrderService orderService, CartService cartService) {
+        this.orderService = orderService;
+        this.cartService = cartService;
+    }
 
     @PostMapping("/createOrderFromCart")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> createOrderFromCart() throws InsufficientStockException, ProductNotFoundException {
+    public ResponseEntity<?> createOrderFromCart() throws InsufficientStockException, ProductNotFoundException, AccessDeniedException {
         Cart cart = cartService.getMyCart();
         Order order = orderService.createOrderFromCart(cart);
-        OrderResponse orderResponse = orderService.getOrderDTO(order.getId());
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        OrderResponse orderResponse = orderService.getOrderDTO(order.getId(), currentUsername);
+
         return ResponseEntity.ok(orderResponse);
     }
 
     @GetMapping("/{orderId}")
-    public ResponseEntity<OrderResponse> getOrder(@PathVariable Long orderId) {
-        OrderResponse orderResponse = orderService.getOrderDTO(orderId);
+    public ResponseEntity<OrderResponse> getOrder(@PathVariable Long orderId, Authentication authentication) throws AccessDeniedException {
+        String currentUsername = authentication.getName();
+        System.out.println("username:" + currentUsername);
+        OrderResponse orderResponse = orderService.getOrderDTO(orderId, currentUsername);
         return ResponseEntity.ok(orderResponse);
     }
 }

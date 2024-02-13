@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -88,24 +89,28 @@ public class OrderService {
         return savedOrder;
     }
 
-    @Transactional(readOnly = true)
-    public OrderResponse getOrderDTO(Long orderId) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new OrderNotFoundException("Order not found with id: " + orderId));
-
-        OrderResponse orderResponse = new OrderResponse();
-        orderResponse.setId(order.getId());
-        orderResponse.setOrderDate(order.getOrderDate());
-        orderResponse.setTotalPrice(order.getTotalPrice());
-        orderResponse.setStatus(order.getStatus().toString());
-
-        List<OrderProductResponse> productDTOs = order.getProducts().stream()
-                .map(this::convertToOrderProductDTO)
-                .toList();
-        orderResponse.setProducts(productDTOs);
-
-        return orderResponse;
+@Transactional(readOnly = true)
+public OrderResponse getOrderDTO(Long orderId, String username) throws AccessDeniedException {
+    Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new OrderNotFoundException("Order not found with id: " + orderId));
+System.out.println("order user: " + order.getUser().getEmail());
+    if (!order.getUser().getEmail().equals(username) && !userService.isAdmin()) {
+        throw new AccessDeniedException("Not authorized to view this order");
     }
+
+    OrderResponse orderResponse = new OrderResponse();
+    orderResponse.setId(order.getId());
+    orderResponse.setOrderDate(order.getOrderDate());
+    orderResponse.setTotalPrice(order.getTotalPrice());
+    orderResponse.setStatus(order.getStatus().toString());
+
+    List<OrderProductResponse> productDTOs = order.getProducts().stream()
+            .map(this::convertToOrderProductDTO)
+            .toList();
+    orderResponse.setProducts(productDTOs);
+
+    return orderResponse;
+}
 
     private OrderProductResponse convertToOrderProductDTO(OrderProduct orderProduct) {
         OrderProductResponse response = new OrderProductResponse();
