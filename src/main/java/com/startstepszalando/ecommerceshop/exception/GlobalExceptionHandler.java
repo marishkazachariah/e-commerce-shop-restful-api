@@ -1,9 +1,11 @@
 package com.startstepszalando.ecommerceshop.exception;
 
+import com.startstepszalando.ecommerceshop.exception.cart.EmptyCartException;
 import com.startstepszalando.ecommerceshop.exception.order.OrderNotFoundException;
 import com.startstepszalando.ecommerceshop.exception.product.DuplicateProductException;
 import com.startstepszalando.ecommerceshop.exception.product.InsufficientStockException;
 import com.startstepszalando.ecommerceshop.exception.product.ProductNotFoundException;
+import com.startstepszalando.ecommerceshop.exception.token.TokenRefreshException;
 import com.startstepszalando.ecommerceshop.exception.token.TokenValidationException;
 import com.startstepszalando.ecommerceshop.exception.user.DuplicateUserException;
 import com.startstepszalando.ecommerceshop.exception.user.UserNotFoundException;
@@ -149,6 +151,17 @@ public class GlobalExceptionHandler {
                 request.getDescription(false));
 
         return new ResponseEntity<>(message, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(EmptyCartException.class)
+    public ResponseEntity<ErrorMessage> handleEmptyCartException(EmptyCartException ex, WebRequest request) {
+        logger.error("Attempted to create order from an empty cart: {}", ex.getMessage());
+        ErrorMessage errorMessage = new ErrorMessage(
+                HttpStatus.BAD_REQUEST.value(),
+                new Date(),
+                "Cart is empty. Add items to cart before creating an order.",
+                request.getDescription(false));
+        return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(TokenRefreshException.class)
