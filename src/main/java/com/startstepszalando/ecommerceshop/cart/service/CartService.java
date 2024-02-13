@@ -37,7 +37,7 @@ public class CartService {
 
     public Cart getMyCart() {
         Long userId = getCurrentUserId();
-        System.out.println("user id is: " + userId);
+
         return cartRepository.findByUserId(userId)
                 .orElseGet(() -> createCartForUser(userId));
     }

@@ -43,7 +43,6 @@ public class OrderController {
     @GetMapping("/{orderId}")
     public ResponseEntity<OrderResponse> getOrder(@PathVariable Long orderId, Authentication authentication) throws AccessDeniedException {
         String currentUsername = authentication.getName();
-        System.out.println("username:" + currentUsername);
         OrderResponse orderResponse = orderService.getOrderDTO(orderId, currentUsername);
         return ResponseEntity.ok(orderResponse);
     }

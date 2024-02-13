@@ -93,7 +93,7 @@ public class OrderService {
 public OrderResponse getOrderDTO(Long orderId, String username) throws AccessDeniedException {
     Order order = orderRepository.findById(orderId)
             .orElseThrow(() -> new OrderNotFoundException("Order not found with id: " + orderId));
-System.out.println("order user: " + order.getUser().getEmail());
+
     if (!order.getUser().getEmail().equals(username) && !userService.isAdmin()) {
         throw new AccessDeniedException("Not authorized to view this order");
     }
