@@ -19,6 +19,10 @@ import com.startstepszalando.ecommerceshop.product.model.Product;
 import com.startstepszalando.ecommerceshop.product.service.ProductService;
 import com.startstepszalando.ecommerceshop.user.model.User;
 import com.startstepszalando.ecommerceshop.user.service.UserService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,7 +52,7 @@ public class OrderService {
 
     @Transactional
     public Order createOrderFromCart(Cart cart) throws InsufficientStockException, ProductNotFoundException {
-        if(cartService.calculateTotalCost().compareTo(BigDecimal.ZERO) <= 0) {
+        if (cartService.calculateTotalCost().compareTo(BigDecimal.ZERO) <= 0) {
             throw new EmptyCartException("Cannot create order from an empty cart.");
         }
 
@@ -89,28 +93,64 @@ public class OrderService {
         return savedOrder;
     }
 
-@Transactional(readOnly = true)
-public OrderResponse getOrderDTO(Long orderId, String username) throws AccessDeniedException {
-    Order order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new OrderNotFoundException("Order not found with id: " + orderId));
+    @Transactional(readOnly = true)
+    public OrderResponse getOrderDTO(Long orderId, String username) throws AccessDeniedException {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException("Order not found with id: " + orderId));
 
-    if (!order.getUser().getEmail().equals(username) && !userService.isAdmin()) {
-        throw new AccessDeniedException("Not authorized to view this order");
+        if (!order.getUser().getEmail().equals(username) && userService.isAdmin()) {
+            throw new AccessDeniedException("Not authorized to view this order");
+        }
+
+        OrderResponse orderResponse = new OrderResponse();
+        orderResponse.setId(order.getId());
+        orderResponse.setOrderDate(order.getOrderDate());
+        orderResponse.setTotalPrice(order.getTotalPrice());
+        orderResponse.setStatus(order.getStatus().toString());
+
+        List<OrderProductResponse> productDTOs = order.getProducts().stream()
+                .map(this::convertToOrderProductDTO)
+                .toList();
+        orderResponse.setProducts(productDTOs);
+
+        return orderResponse;
     }
 
-    OrderResponse orderResponse = new OrderResponse();
-    orderResponse.setId(order.getId());
-    orderResponse.setOrderDate(order.getOrderDate());
-    orderResponse.setTotalPrice(order.getTotalPrice());
-    orderResponse.setStatus(order.getStatus().toString());
+    public Page<OrderResponse> getAllOrdersForUser(Long userId, int page, int size) throws ProductNotFoundException, AccessDeniedException {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Order> orders = orderRepository.findAllByUserId(userId, pageable);
 
-    List<OrderProductResponse> productDTOs = order.getProducts().stream()
-            .map(this::convertToOrderProductDTO)
-            .toList();
-    orderResponse.setProducts(productDTOs);
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
 
-    return orderResponse;
-}
+        if (orders.stream().anyMatch(order -> !order.getUser().getEmail().equals(currentUsername)) && userService.isAdmin()) {
+            throw new AccessDeniedException("Not authorized to view orders for this user");
+        }
+
+        if (orders.isEmpty()) {
+            throw new ProductNotFoundException(
+                    String.format("No orders found for user with ID %d", userId));
+        }
+
+        return orders.map(this::convertToOrderResponseDTO);
+    }
+
+    private OrderResponse convertToOrderResponseDTO(Order order) {
+        OrderResponse orderResponse = new OrderResponse();
+        orderResponse.setId(order.getId());
+        orderResponse.setOrderDate(order.getOrderDate());
+        orderResponse.setTotalPrice(order.getTotalPrice());
+        orderResponse.setStatus(order.getStatus().toString());
+        orderResponse.setProducts(order.getProducts().stream()
+                .map(this::convertToOrderProductResponseDTO)
+                .toList());
+        return orderResponse;
+    }
+
+    private OrderProductResponse convertToOrderProductResponseDTO(OrderProduct orderProduct) {
+        OrderProductResponse productResponse = new OrderProductResponse();
+        productResponse.setProductId(orderProduct.getId());
+        return productResponse;
+    }
 
     private OrderProductResponse convertToOrderProductDTO(OrderProduct orderProduct) {
         OrderProductResponse response = new OrderProductResponse();

@@ -7,6 +7,7 @@ import com.startstepszalando.ecommerceshop.exception.product.ProductNotFoundExce
 import com.startstepszalando.ecommerceshop.order.dto.OrderResponse;
 import com.startstepszalando.ecommerceshop.order.model.Order;
 import com.startstepszalando.ecommerceshop.order.service.OrderService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -45,5 +46,13 @@ public class OrderController {
         String currentUsername = authentication.getName();
         OrderResponse orderResponse = orderService.getOrderDTO(orderId, currentUsername);
         return ResponseEntity.ok(orderResponse);
+    }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<Page<OrderResponse>> getAllOrdersForUser(@PathVariable Long userId,
+                                                                   @RequestParam(defaultValue = "0") int page,
+                                                                   @RequestParam(defaultValue = "3") int size) throws ProductNotFoundException, AccessDeniedException {
+        Page<OrderResponse> orders = orderService.getAllOrdersForUser(userId, page, size);
+        return ResponseEntity.ok(orders);
     }
 }
