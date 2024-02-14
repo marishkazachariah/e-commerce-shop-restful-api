@@ -77,6 +77,6 @@ public class UserService implements UserDetailsService {
     public boolean isAdmin() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return authentication.getAuthorities().stream()
-                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ADMIN"));
+                .noneMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ADMIN"));
     }
 }
