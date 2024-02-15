@@ -2,10 +2,12 @@ package com.startstepszalando.ecommerceshop.order.controller;
 
 import com.startstepszalando.ecommerceshop.cart.model.Cart;
 import com.startstepszalando.ecommerceshop.cart.service.CartService;
+import com.startstepszalando.ecommerceshop.exception.order.OrderNotFoundException;
 import com.startstepszalando.ecommerceshop.exception.product.InsufficientStockException;
 import com.startstepszalando.ecommerceshop.exception.product.ProductNotFoundException;
 import com.startstepszalando.ecommerceshop.order.dto.OrderResponse;
 import com.startstepszalando.ecommerceshop.order.model.Order;
+import com.startstepszalando.ecommerceshop.order.model.OrderStatus;
 import com.startstepszalando.ecommerceshop.order.service.OrderService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -54,5 +56,16 @@ public class OrderController {
                                                                    @RequestParam(defaultValue = "3") int size) throws ProductNotFoundException, AccessDeniedException {
         Page<OrderResponse> orders = orderService.getAllOrdersForUser(userId, page, size);
         return ResponseEntity.ok(orders);
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PutMapping("/{orderId}/updateStatus")
+    public ResponseEntity<?> updateOrderStatus(@PathVariable Long orderId, @RequestParam OrderStatus newStatus) {
+        try {
+            orderService.updateOrderStatus(orderId, newStatus);
+            return ResponseEntity.ok("Order status updated successfully.");
+        } catch (OrderNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

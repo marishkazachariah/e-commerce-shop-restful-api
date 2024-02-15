@@ -93,6 +93,15 @@ public class OrderService {
         return savedOrder;
     }
 
+    @Transactional
+    public void updateOrderStatus(Long orderId, OrderStatus newStatus) throws OrderNotFoundException {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException("Order not found with id: " + orderId));
+
+        order.setStatus(newStatus);
+        orderRepository.save(order);
+    }
+
     @Transactional(readOnly = true)
     public OrderResponse getOrderDTO(Long orderId, String username) throws AccessDeniedException {
         Order order = orderRepository.findById(orderId)
