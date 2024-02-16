@@ -7,45 +7,46 @@ import com.startstepszalando.ecommerceshop.cart.model.CartItem;
 import com.startstepszalando.ecommerceshop.cart.model.CartItemId;
 import com.startstepszalando.ecommerceshop.cart.repository.CartItemRepository;
 import com.startstepszalando.ecommerceshop.cart.repository.CartRepository;
+import com.startstepszalando.ecommerceshop.exception.product.ProductNotFoundException;
 import com.startstepszalando.ecommerceshop.product.model.Product;
 import com.startstepszalando.ecommerceshop.product.repository.ProductRepository;
-import com.startstepszalando.ecommerceshop.user.model.User;
-import com.startstepszalando.ecommerceshop.user.repository.UserRepository;
 import com.startstepszalando.ecommerceshop.user.service.UserImpl;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CartService {
-    private final UserRepository userRepository;
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
+    private final CartManagementService cartManagementService;
 
-    public CartService(UserRepository userRepository, CartRepository cartRepository,
-                       CartItemRepository cartItemRepository, ProductRepository productRepository) {
-        this.userRepository = userRepository;
+    public CartService(CartRepository cartRepository,
+                       CartItemRepository cartItemRepository,
+                       ProductRepository productRepository,
+                       CartManagementService cartManagementService) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
         this.productRepository = productRepository;
+        this.cartManagementService = cartManagementService;
     }
 
     public Cart getMyCart() {
         Long userId = getCurrentUserId();
 
         return cartRepository.findByUserId(userId)
-                .orElseGet(() -> createCartForUser(userId));
+                .orElseGet(() -> cartManagementService.createCartForUser(userId));
     }
 
     public CartResponse getMyCartDetails() {
         Long userId = getCurrentUserId();
         Cart cart = cartRepository.findByUserId(userId)
-                .orElseGet(() -> createCartForUser(userId));
+                .orElseGet(() -> cartManagementService.createCartForUser(userId));
 
         List<CartItemResponse> cartItems = cartItemRepository.findCartDetailsByUserId(userId)
                 .stream()
@@ -58,20 +59,37 @@ public class CartService {
     }
 
     @Transactional
-    public void addProductToCart(Long productId, Integer quantity) {
+    public void addProductToCart(Long productId, Integer quantity) throws ProductNotFoundException {
         Long userId = getCurrentUserId();
 
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new ProductNotFoundException("Product not found"));
+
+        if (product.getStock() < quantity) {
+            throw new IllegalArgumentException("Insufficient stock for product");
+        }
 
         Cart cart = cartRepository.findByUserId(userId)
-                .orElseGet(() -> createCartForUser(userId));
+                .orElseGet(() -> cartManagementService.createCartForUser(userId));
 
-        CartItem cartItem = cartItemRepository.findById(new CartItemId(cart.getId(), productId))
-                .orElse(new CartItem(cart, product, 0));
-        cartItem.setQuantity(cartItem.getQuantity() + quantity);
+        Optional<CartItem> existingCartItem = cart.getItems().stream()
+                .filter(item -> item.getProduct().getId().equals(productId))
+                .findFirst();
+
+        CartItem cartItem;
+        if (existingCartItem.isPresent()) {
+            cartItem = existingCartItem.get();
+            cartItem.setQuantity(cartItem.getQuantity() + quantity);
+        } else {
+            cartItem = new CartItem();
+            cartItem.setCart(cart);
+            cartItem.setProduct(product);
+            cartItem.setQuantity(quantity);
+            cart.getItems().add(cartItem);
+        }
 
         cartItemRepository.save(cartItem);
+        cartRepository.save(cart);
     }
 
     @Transactional
@@ -91,6 +109,7 @@ public class CartService {
         cartItemRepository.deleteByCartId(cart.getId());
 
         cart.getItems().clear();
+
         saveCart(cart);
     }
 
@@ -101,15 +120,6 @@ public class CartService {
         } else {
             throw new RuntimeException("Expected principal to be an instance of UserImpl");
         }
-    }
-
-    public Cart createCartForUser(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
-
-        Cart cart = new Cart();
-        cart.setUser(user);
-        return cartRepository.save(cart);
     }
 
     public BigDecimal calculateTotalCost() {

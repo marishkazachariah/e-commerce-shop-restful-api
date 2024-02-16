@@ -15,7 +15,6 @@ import com.startstepszalando.ecommerceshop.order.model.OrderProduct;
 import com.startstepszalando.ecommerceshop.order.model.OrderStatus;
 import com.startstepszalando.ecommerceshop.order.repository.OrderProductRepository;
 import com.startstepszalando.ecommerceshop.order.repository.OrderRepository;
-import com.startstepszalando.ecommerceshop.product.model.Product;
 import com.startstepszalando.ecommerceshop.product.service.ProductService;
 import com.startstepszalando.ecommerceshop.user.model.User;
 import com.startstepszalando.ecommerceshop.user.service.UserService;
@@ -33,7 +32,6 @@ import java.util.List;
 
 @Service
 public class OrderService {
-
     private final CartService cartService;
     private final OrderRepository orderRepository;
     private final OrderProductRepository orderProductRepository;
@@ -51,16 +49,14 @@ public class OrderService {
     }
 
     @Transactional
-    public Order createOrderFromCart(Cart cart) throws InsufficientStockException, ProductNotFoundException {
-        if (cartService.calculateTotalCost().compareTo(BigDecimal.ZERO) <= 0) {
+    public Order createOrderFromCart(Cart cart) throws InsufficientStockException, EmptyCartException, UserNotFoundException, ProductNotFoundException {
+        if (cart.getItems() == null || cart.getItems().isEmpty()) {
             throw new EmptyCartException("Cannot create order from an empty cart.");
         }
 
-        for (CartItem item : cart.getItems()) {
-            Product product = item.getProduct();
-            if (product.getStock() < item.getQuantity()) {
-                throw new InsufficientStockException("Insufficient stock for product: " + product.getName());
-            }
+        BigDecimal totalCost = cartService.calculateTotalCost();
+        if (totalCost.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new EmptyCartException("Cannot create order from an empty cart.");
         }
 
         User user = cart.getUser();
@@ -69,12 +65,12 @@ public class OrderService {
         }
 
         Order order = new Order();
-        order.setUser(cart.getUser());
+        order.setUser(user);
         order.setOrderDate(LocalDateTime.now());
         order.setStatus(OrderStatus.PENDING);
-        order.setTotalPrice(cartService.calculateTotalCost());
+        order.setTotalPrice(totalCost);
 
-        Order savedOrder = orderRepository.save(order);
+        Order savedOrder = orderRepository.saveAndFlush(order);
 
         for (CartItem cartItem : cart.getItems()) {
             OrderProduct orderProduct = new OrderProduct();
@@ -84,6 +80,9 @@ public class OrderService {
             orderProduct.setPrice(cartItem.getProduct().getPrice());
 
             productService.updateProductStock(cartItem.getProduct().getId(), cartItem.getQuantity());
+
+            savedOrder.getProducts().add(orderProduct);
+            orderProduct.setOrder(savedOrder);
 
             orderProductRepository.save(orderProduct);
         }
@@ -170,4 +169,3 @@ public class OrderService {
         return response;
     }
 }
-
