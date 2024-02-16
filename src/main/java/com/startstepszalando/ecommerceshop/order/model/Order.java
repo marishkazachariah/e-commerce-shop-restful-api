@@ -3,6 +3,7 @@ package com.startstepszalando.ecommerceshop.order.model;
 import com.startstepszalando.ecommerceshop.user.model.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -15,7 +16,8 @@ import java.util.Set;
 @Table(name = "`orders`")
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
+    @NoArgsConstructor
+@Builder
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,6 +31,7 @@ public class Order {
     private LocalDateTime orderDate;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
     private Set<OrderProduct> products = new HashSet<>();
 
     @Column(name = "total_price")
@@ -36,16 +39,6 @@ public class Order {
 
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
-
-    public void addProduct(OrderProduct product) {
-        products.add(product);
-        product.setOrder(this);
-    }
-
-    public void removeProduct(OrderProduct product) {
-        products.remove(product);
-        product.setOrder(null);
-    }
 }
 
 
