@@ -16,3 +16,5 @@ The following is a Capstone Project for the Startsteps' Java Backend Development
 ## Swagger API
 - While the application is running, [click here](http://localhost:8080/swagger-ui/index.html) to API docs and endpoints
 
+## Docker Setup/Deployment
+- This is still a work in progress, but from [this branch](https://github.com/marishkazachariah/e-commerce-shop-restful-api/tree/docker-build), I managed to run the containers locally 
