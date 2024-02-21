@@ -47,3 +47,6 @@ spring-boot-starter-logging.xml
 
 # macOS
 .DS_Store
+
+# env
+.env

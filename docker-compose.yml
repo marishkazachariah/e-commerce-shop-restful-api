@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  ecommerce_container:
+    image: zalando-ecommerce:latest
+    container_name: ecommerce_container
+    ports:
+      - 8081:8080
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3306/ecommercedb?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      api.key: ${APP_JWTCOOKIE}
+      jwt.key: ${APP_SECRETKEY}
+      jwt.issuer: ${JWT_ISSUER}
+    depends_on:
+      - mysql_container
+    networks:
+      - ecommerce-mysql-net
+
+  mysql_container:
+    image: mysql:8.1.0
+    container_name: mysql_container
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ecommercedb
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - 3306:3306
+    networks:
+      - ecommerce-mysql-net
+
+networks:
+  ecommerce-mysql-net:
+    driver: bridge
