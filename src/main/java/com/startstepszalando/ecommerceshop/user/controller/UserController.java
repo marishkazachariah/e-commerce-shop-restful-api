@@ -14,13 +14,13 @@ import com.startstepszalando.ecommerceshop.refreshToken.model.RefreshToken;
 import com.startstepszalando.ecommerceshop.refreshToken.service.RefreshTokenService;
 import com.startstepszalando.ecommerceshop.user.dto.UserLoginRequest;
 import com.startstepszalando.ecommerceshop.user.dto.UserRegistrationRequest;
-import com.startstepszalando.ecommerceshop.user.repository.UserRepository;
 import com.startstepszalando.ecommerceshop.user.service.UserImpl;
 import com.startstepszalando.ecommerceshop.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -41,28 +41,30 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
+@Tag(name = "User", description = "User account management APIs")
 public class UserController {
 
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
-    private final UserRepository userRepository;
 
-    @Operation(summary = "Register a new user", responses = {
-            @ApiResponse(responseCode = "200", description = "User registered successfully",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = AuthenticationResponse.class))),
-            @ApiResponse(responseCode = "404", description = "User not found",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = UserNotFoundException.class))),
-            @ApiResponse(responseCode = "400", description = "Duplicate user detected",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = DuplicateUserException.class))),
-            @ApiResponse(responseCode = "500", description = "Internal server error or unexpected error during registration",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Exception.class)))
-    })
+    @Operation(summary = "Register a new user",
+            description = "Returns the registered username (email), roles, access token and refresh token.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "User registered successfully",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = AuthenticationResponse.class))),
+                    @ApiResponse(responseCode = "404", description = "User not found",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = UserNotFoundException.class))),
+                    @ApiResponse(responseCode = "400", description = "Duplicate user detected",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = DuplicateUserException.class))),
+                    @ApiResponse(responseCode = "500", description = "Internal server error or unexpected error during registration",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = Exception.class)))
+            })
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(
             @Valid
@@ -81,20 +83,22 @@ public class UserController {
         }
     }
 
-    @Operation(summary = "User login", responses = {
-            @ApiResponse(responseCode = "200", description = "User logged in successfully",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = AuthenticationResponse.class))),
-            @ApiResponse(responseCode = "404", description = "User not found",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = UserNotFoundException.class))),
-            @ApiResponse(responseCode = "401", description = "Bad credentials",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = AuthenticationException.class))),
-            @ApiResponse(responseCode = "500", description = "Internal server error",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Exception.class)))
-    })
+    @Operation(summary = "User login",
+            description = "Accepts login credentials and returns a JWT access token and refresh token.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "User logged in successfully",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = AuthenticationResponse.class))),
+                    @ApiResponse(responseCode = "404", description = "User not found",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = UserNotFoundException.class))),
+                    @ApiResponse(responseCode = "401", description = "Bad credentials",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = AuthenticationException.class))),
+                    @ApiResponse(responseCode = "500", description = "Internal server error",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = Exception.class)))
+            })
     @PostMapping(value = "/login")
     public ResponseEntity<?> login(@Valid @RequestBody UserLoginRequest loginRequest) {
         Authentication authentication = authenticationManager
@@ -118,20 +122,22 @@ public class UserController {
                 .body(responseBody);
     }
 
-    @Operation(summary = "Refresh authentication token: Provide a valid refresh token to receive a new authentication token", responses = {
-            @ApiResponse(responseCode = "200", description = "Successfully refreshed authentication token",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = TokenRefreshResponse.class))),
-            @ApiResponse(responseCode = "404", description = "Refresh token is not in database",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = TokenValidationException.class))),
-            @ApiResponse(responseCode = "403", description = "Refresh token was expired",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = TokenRefreshException.class))),
-            @ApiResponse(responseCode = "500", description = "Internal server error",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Exception.class)))
-    })
+    @Operation(summary = "Refresh authentication token",
+            description = "Provides a valid refresh token to receive a new authentication token\"",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Successfully refreshed authentication token",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = TokenRefreshResponse.class))),
+                    @ApiResponse(responseCode = "404", description = "Refresh token is not in database",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = TokenValidationException.class))),
+                    @ApiResponse(responseCode = "403", description = "Refresh token was expired",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = TokenRefreshException.class))),
+                    @ApiResponse(responseCode = "500", description = "Internal server error",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = Exception.class)))
+            })
     @PostMapping("/refreshtoken")
     public ResponseEntity<?> refreshToken(@Valid @RequestBody TokenRefreshRequest request) {
         TokenRefreshResponse response = refreshTokenService.refreshToken(request.getRefreshToken(), jwtService);
