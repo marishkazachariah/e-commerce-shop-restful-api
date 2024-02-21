@@ -17,5 +17,6 @@ The following is a Capstone Project for the Startsteps' Java Backend Development
 - While the application is running, [click here](http://localhost:8080/swagger-ui/index.html) to API docs and endpoints
 
 ### Testing the Docker Image Locally
-- To build the Docker image: docker build -t `marishka/zalando-ecommerce:1.0.0 .`
-- To run the Docker image locally: `docker run -p 8080:8080 -e DB_USER=yourSQLUsername -e DB_PASSWORD=yourSQLPassword marishka/zalando-ecommerce:1.0.0`
+- To test the Docker image locally: `docker compose up -d`
+- Port on Postman is `8081`
+  - e.g. http://localhost:8081/api/users/login
